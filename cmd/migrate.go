@@ -5,7 +5,9 @@ import (
     "github.com/joho/godotenv"
     "github.com/sirupsen/logrus"
 
-    //tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	dbs "github.com/GSlon/tgipbotGO/internal/dbservice"
+
+	"os"
 )
 
 func initConfig() error {
@@ -23,8 +25,8 @@ func main() {
 		logrus.Fatalf(err.Error())
 	}
 
-    // start bot
-    config := dbs.PostgresConfig{
+    // вызвать Postgres.Migrate
+	config := dbs.PostgresConfig{
 		Host:     viper.GetString("db.host"),
 		Port:     viper.GetString("db.port"),
 		Username: viper.GetString("db.username"),
@@ -38,6 +40,7 @@ func main() {
 		logrus.Fatalf(err.Error())
 	}
 
-    
+	if err := postgres.Migrate(); err != nil {
+		logrus.Fatalf(err.Error())
+	}
 }
-

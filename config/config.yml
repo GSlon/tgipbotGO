@@ -4,5 +4,5 @@ db:
     username: "slon"
     host: "localhost"
     port: "5432"
-    dbname: "todoapp"
+    dbname: "botdb"
     sslmode: "disable"
