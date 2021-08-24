@@ -1,0 +1,8 @@
+bottoken: ""
+
+db:
+    username: "slon"
+    host: "localhost"
+    port: "5432"
+    dbname: "todoapp"
+    sslmode: "disable"
