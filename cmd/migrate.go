@@ -43,4 +43,5 @@ func main() {
 	if err := postgres.Migrate(); err != nil {
 		logrus.Fatalf(err.Error())
 	}
+	logrus.Info("migrate successfully")
 }

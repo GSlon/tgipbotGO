@@ -1,5 +1,3 @@
-bottoken: ""
-
 db:
     username: "slon"
     host: "localhost"

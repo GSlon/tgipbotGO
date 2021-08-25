@@ -4,8 +4,13 @@ import (
     "github.com/spf13/viper"
     "github.com/joho/godotenv"
     "github.com/sirupsen/logrus"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 
-    //tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+    b "github.com/GSlon/tgipbotGO/internal/bot"
+	dbs "github.com/GSlon/tgipbotGO/internal/dbservice"
+	s "github.com/GSlon/tgipbotGO/internal/service"
+
+	"os"
 )
 
 func initConfig() error {
@@ -17,13 +22,14 @@ func initConfig() error {
 func main() {
     if err := initConfig(); err != nil {
         logrus.Fatalf(err.Error())
+		return
     }
 
     if err := godotenv.Load(); err != nil {
 		logrus.Fatalf(err.Error())
+		return
 	}
 
-    // start bot
     config := dbs.PostgresConfig{
 		Host:     viper.GetString("db.host"),
 		Port:     viper.GetString("db.port"),
@@ -36,8 +42,26 @@ func main() {
 	postgres, err := dbs.NewPostgres(config)
 	if err != nil {
 		logrus.Fatalf(err.Error())
+		return
 	}
 
+	botApi, err := tgbotapi.NewBotAPI(os.Getenv("BOT_TOKEN"))
+	if err != nil {
+		// log error into db
+		
+		logrus.Fatalf(err.Error())
+		return
+	}
+
+	service := s.NewService(postgres)
+
+	bot := b.NewBot(botApi, service)
+	if err := bot.Start(); err != nil {
+		// log error into db
+
+		logrus.Fatalf(err.Error())
+		return
+	}
     
 }
 

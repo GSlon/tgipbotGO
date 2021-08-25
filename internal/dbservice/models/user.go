@@ -6,9 +6,9 @@ import (
 
 type User struct {
 	ID uint `gorm:"primaryKey"`
-	TgID uint `gorm:"unique"`	// chat id
-	UserName string
-	UserId uint `gorm:"unique"`
+	UserID uint `gorm:"unique"`
+	ChatID uint `gorm:"unique"`	
+	State string `gorm: "default:default_state"`// для ответов на запросы бота
 }
 
 type UserLog struct {
