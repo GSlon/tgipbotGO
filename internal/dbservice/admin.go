@@ -2,13 +2,13 @@ package dbservice
 
 import m "github.com/GSlon/tgipbotGO/internal/dbservice/models"
 
-func (p *Postgres) AddAdmin(id uint) error {
+func (p *Postgres) CreateAdmin(id uint) error {
 	admin := m.Admin{UserID: id}
 	result := p.db.Create(&admin)
 	return result.Error
 }
 
-func (p *Postgres) RemoveAdmin(id uint) error {
+func (p *Postgres) DeleteAdmin(id uint) error {
 	admin := m.Admin{UserID: id}
 	result := p.db.Delete(&admin)
 	return result.Error
@@ -49,8 +49,6 @@ func (p *Postgres) GetAdminState(id uint) (string, error) {
 
 	return admin.State, nil
 }
-
-
 
 func (p *Postgres) SetAdminState(id uint, state string) error {
 	admin, err := p.getAdmin(id)	
