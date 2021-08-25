@@ -5,7 +5,7 @@ import (
 )
 
 func (p *Postgres) LogError(info string) error {
-	log := m.ErrorLog{info: info}
-	result := db.Create(log)
+	log := m.ErrorLog{Info: info}
+	result := p.db.Create(log)
 	return result.Error	
 }

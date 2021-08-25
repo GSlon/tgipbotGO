@@ -57,8 +57,7 @@ func main() {
 
 	bot := b.NewBot(botApi, service)
 	if err := bot.Start(); err != nil {
-		// log error into db
-
+		service.LogError(err.Error()) // log to db
 		logrus.Fatalf(err.Error())
 		return
 	}

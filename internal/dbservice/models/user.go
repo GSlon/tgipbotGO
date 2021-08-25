@@ -8,7 +8,7 @@ type User struct {
 	ID uint `gorm:"primaryKey"`
 	UserID uint `gorm:"unique"`
 	ChatID uint `gorm:"unique"`	
-	State string `gorm: "default:default_state"`// для ответов на запросы бота
+	State string 	// для ответов на запросы бота
 }
 
 type UserLog struct {

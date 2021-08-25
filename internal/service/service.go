@@ -14,14 +14,8 @@ func NewService(db *dbs.Postgres) *Service {
 	return &Service{db: db}	
 }
 
-func (s *Service) CreateAdmin(id uint) error {
-	if err := db.CreateAdmin(id); err != nil {
+func (s *Service) LogError(info string) error {
+	if err := s.db.LogError(info); err != nil {
 		return err
 	}
-
-	logrus.Info(fmt.Sprintf("admin %s created", id))
-}
-
-func (p *Postgres) DeleteAdmin(id uint) error {
-
 }

@@ -5,6 +5,12 @@ import (
 )
 
 // const commands
+const (
+	commandStart = "start"
+	
+
+)
+
 
 func (b *Bot) handleCommand(message *tgbotapi.Message) error {
 	// check admin

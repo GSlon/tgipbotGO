@@ -3,23 +3,24 @@ package dbservice
 import (
 	m "github.com/GSlon/tgipbotGO/internal/dbservice/models"
 
-	"strconv"
 	"fmt"
+	_ "strconv"
 )
 
-func (p *Postgres) CreateUser(id, chatid uint) error {
+func (p *Postgres) CreateUser(userid, chatid uint, state string) error {
 	user := m.User{
-		UserID: id,
+		UserID: userid,
 		ChatID: chatid,
+		State: state,
 	}
 
-	result := db.Create(&user)
+	result := p.db.Create(&user)
 	return result.Error
 }
 
-func (p *Postgres) getUser(id uint) (m.User, error) {
+func (p *Postgres) getUser(userid uint) (m.User, error) {
 	var user m.User
-	result := db.First(&user, id)
+	result := p.db.Where("user_id=?", userid).Find(&user)
 	if result.Error != nil {
 		return user, result.Error
 	}
@@ -33,7 +34,7 @@ func (p *Postgres) getUser(id uint) (m.User, error) {
 
 func (p *Postgres) getAllUsers() ([]m.User, error) {
 	var users []m.User
-	result := db.Find(&users)
+	result := p.db.Find(&users)
 	if result.Error != nil {
 		return users, result.Error
 	}
@@ -45,15 +46,15 @@ func (p *Postgres) getAllUsers() ([]m.User, error) {
 	return users, nil
 }
 
-func (p *Postgres) GetAllUsersChatID() ([]int, error) {
-	users, err := getAllUsers()
+func (p *Postgres) GetAllUsersChatID() ([]uint, error) {
+	users, err := p.getAllUsers()
 	
 	if err != nil {
-		return []int{}, err
+		return []uint{}, err
 	}
 
-	var chatsID []int
-	for user, _ := range users {
+	var chatsID []uint
+	for _, user := range users {
 		chatsID = append(chatsID, user.ChatID)
 	} 
 	
@@ -61,15 +62,15 @@ func (p *Postgres) GetAllUsersChatID() ([]int, error) {
 }
 
 func (p *Postgres) GetAllUsersInfo() ([]string, error) {
-	users, err := getAllUsers()
+	users, err := p.getAllUsers()
 	
 	if err != nil {
-		return []int{}, err
+		return []string{}, err
 	}
 
 	var usersInfo []string
-	for user, _ := range users {
-		info := fmt.Sprintf("user_id: %d, chat_id: %d", user.UserID, user.chatsID)
+	for _, user := range users {
+		info := fmt.Sprintf("user_id: %d, chat_id: %d", user.UserID, user.ChatID)
 		usersInfo = append(usersInfo, info)
 	} 
 	
@@ -77,7 +78,7 @@ func (p *Postgres) GetAllUsersInfo() ([]string, error) {
 }
 
 func (p *Postgres) GetUserInfo(id uint) (string, error) {
-	user, err := getUser(id)
+	user, err := p.getUser(id)
 	if err != nil {
 		return "", err
 	}
@@ -88,11 +89,32 @@ func (p *Postgres) GetUserInfo(id uint) (string, error) {
 	return info, nil
 }
 
-// UserLog functions
-func (p *Postgres) CreateUserLog(userid uint, ip, info string) error {
-	user, err := getUser(userid)
+func (p *Postgres) GetUserState(id uint) (string, error) {
+	user, err := p.getUser(id)	
 	if err != nil {
 		return "", err
+	}
+
+	return user.State, nil
+}
+
+func (p *Postgres) SetUserState(userid uint, state string) error {
+	user, err := p.getUser(userid)	
+	if err != nil {
+		return err
+	}
+
+	user.State = state
+	result := p.db.Save(&user)
+	
+	return result.Error
+}
+
+// UserLog functions
+func (p *Postgres) CreateUserLog(userid uint, ip, info string) error {
+	user, err := p.getUser(userid)
+	if err != nil {
+		return err
 	}
 
 	userlog := m.UserLog{
@@ -101,56 +123,72 @@ func (p *Postgres) CreateUserLog(userid uint, ip, info string) error {
 		Info: info,
 	}
 
-	result := db.Create(userlog)
+	result := p.db.Create(&userlog)
 	return result.Error
 }
 
-// удаляем по полю id в бд
-func (p *Postgres) DeleteUserLog(id uint) error {
-	userlog := m.UserLog{ID: id}
-	result := p.db.Delete(&userlog)
-	return result.Error
+// удаляем по id юзера и ip
+func (p *Postgres) DeleteUserLog(userid uint, ip string) error {
+	user, err := p.getUser(userid)
+	if err != nil {
+		return err
+	}
+
+	var userlog m.UserLog 
+	result := p.db.Where("user_id = ? AND ip = ?", fmt.Sprint(user.ID), ip).First(&userlog)
+	if result.Error != nil {
+		return result.Error
+	}
+	
+	res := p.db.Delete(&userlog)
+	return res.Error
 }
 
 func (p *Postgres) getUniqueUserLogs(userid uint) ([]m.UserLog, error) {
+	user, err := p.getUser(userid)
+	if err != nil {
+		return []m.UserLog{}, err
+	}
+
 	var userlogs []m.UserLog
-	result := db.Distinct("ip").Where("user_id = ?", userid).Find(&userlogs)
+	result := p.db.Distinct("ip").Where("user_id = ?", user.ID).Find(&userlogs)
 	if result.Error != nil {
-		return user, result.Error
+		return userlogs, result.Error
 	}
 
 	if result.RowsAffected == 0 {
-		return user, &LogNotFoundError{}
+		return userlogs, &LogNotFoundError{}
 	}
 	
 	return userlogs, nil
 } 
 
+// only ip's
 func (p *Postgres) GetUserUniqueIPs(userid uint) ([]string, error) {
-	userlogs, err := getUniqueUserLogs(userid)
+	userlogs, err := p.getUniqueUserLogs(userid)
 	if err != nil {
 		return []string{}, err
 	}
 
 	var res []string 
-	for log, _ := range userlogs {
+	for _, log := range userlogs {
 		res = append(res, log.IP)
 	}
 
-	return res
+	return res, nil
 }
 
 // map -> ip: info
-func (p *Postgres) GetUserUniqueIPsExt(userid uint) (map[string]string, err) {
-	userlogs, err := getUniqueUserLogs(userid)
+func (p *Postgres) GetUserUniqueIPsExt(userid uint) (map[string]string, error) {
+	userlogs, err := p.getUniqueUserLogs(userid)
 	if err != nil {
-		return []string{}, err
+		return map[string]string{}, err
 	}
 
 	var res map[string]string 
-	for log, _ := range userlogs {
+	for _, log := range userlogs {
 		res[log.IP] = log.Info
 	}
 
-	return res
+	return res, nil
 }
