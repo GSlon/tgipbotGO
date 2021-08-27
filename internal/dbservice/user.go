@@ -4,10 +4,16 @@ import (
 	m "github.com/GSlon/tgipbotGO/internal/dbservice/models"
 
 	"fmt"
+	"errors"
 	_ "strconv"
 )
 
-func (p *Postgres) CreateUser(userid, chatid uint, state string) error {
+func (p *Postgres) CreateUser(userid int, chatid int64, state string) error {
+	exists, _ := p.CheckUserExists(userid)	// ignore check errors
+	if exists {
+		return &UserAlreadyExistsError{}
+	}
+
 	user := m.User{
 		UserID: userid,
 		ChatID: chatid,
@@ -18,7 +24,7 @@ func (p *Postgres) CreateUser(userid, chatid uint, state string) error {
 	return result.Error
 }
 
-func (p *Postgres) getUser(userid uint) (m.User, error) {
+func (p *Postgres) getUser(userid int) (m.User, error) {
 	var user m.User
 	result := p.db.Where("user_id=?", userid).Find(&user)
 	if result.Error != nil {
@@ -30,6 +36,19 @@ func (p *Postgres) getUser(userid uint) (m.User, error) {
 	}
 
 	return user, nil
+}
+
+func (p *Postgres) CheckUserExists(userid int) (bool, error) {
+	_, err := p.getUser(userid)
+	if err != nil {
+		if errors.Is(err, &UserNotFoundError{}) {
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (p *Postgres) getAllUsers() ([]m.User, error) {
@@ -46,14 +65,14 @@ func (p *Postgres) getAllUsers() ([]m.User, error) {
 	return users, nil
 }
 
-func (p *Postgres) GetAllUsersChatID() ([]uint, error) {
+func (p *Postgres) GetAllUsersChatID() ([]int64, error) {
 	users, err := p.getAllUsers()
 	
 	if err != nil {
-		return []uint{}, err
+		return []int64{}, err
 	}
 
-	var chatsID []uint
+	var chatsID []int64
 	for _, user := range users {
 		chatsID = append(chatsID, user.ChatID)
 	} 
@@ -77,7 +96,7 @@ func (p *Postgres) GetAllUsersInfo() ([]string, error) {
 	return usersInfo, nil
 }
 
-func (p *Postgres) GetUserInfo(id uint) (string, error) {
+func (p *Postgres) GetUserInfo(id int) (string, error) {
 	user, err := p.getUser(id)
 	if err != nil {
 		return "", err
@@ -89,7 +108,7 @@ func (p *Postgres) GetUserInfo(id uint) (string, error) {
 	return info, nil
 }
 
-func (p *Postgres) GetUserState(id uint) (string, error) {
+func (p *Postgres) GetUserState(id int) (string, error) {
 	user, err := p.getUser(id)	
 	if err != nil {
 		return "", err
@@ -98,7 +117,7 @@ func (p *Postgres) GetUserState(id uint) (string, error) {
 	return user.State, nil
 }
 
-func (p *Postgres) SetUserState(userid uint, state string) error {
+func (p *Postgres) SetUserState(userid int, state string) error {
 	user, err := p.getUser(userid)	
 	if err != nil {
 		return err
@@ -111,7 +130,7 @@ func (p *Postgres) SetUserState(userid uint, state string) error {
 }
 
 // UserLog functions
-func (p *Postgres) CreateUserLog(userid uint, ip, info string) error {
+func (p *Postgres) CreateUserLog(userid int, ip, info string) error {
 	user, err := p.getUser(userid)
 	if err != nil {
 		return err
@@ -128,7 +147,7 @@ func (p *Postgres) CreateUserLog(userid uint, ip, info string) error {
 }
 
 // удаляем по id юзера и ip
-func (p *Postgres) DeleteUserLog(userid uint, ip string) error {
+func (p *Postgres) DeleteUserLog(userid int, ip string) error {
 	user, err := p.getUser(userid)
 	if err != nil {
 		return err
@@ -144,7 +163,7 @@ func (p *Postgres) DeleteUserLog(userid uint, ip string) error {
 	return res.Error
 }
 
-func (p *Postgres) getUniqueUserLogs(userid uint) ([]m.UserLog, error) {
+func (p *Postgres) getUniqueUserLogs(userid int) ([]m.UserLog, error) {
 	user, err := p.getUser(userid)
 	if err != nil {
 		return []m.UserLog{}, err
@@ -164,7 +183,7 @@ func (p *Postgres) getUniqueUserLogs(userid uint) ([]m.UserLog, error) {
 } 
 
 // only ip's
-func (p *Postgres) GetUserUniqueIPs(userid uint) ([]string, error) {
+func (p *Postgres) GetUserUniqueIPs(userid int) ([]string, error) {
 	userlogs, err := p.getUniqueUserLogs(userid)
 	if err != nil {
 		return []string{}, err
@@ -179,7 +198,7 @@ func (p *Postgres) GetUserUniqueIPs(userid uint) ([]string, error) {
 }
 
 // map -> ip: info
-func (p *Postgres) GetUserUniqueIPsExt(userid uint) (map[string]string, error) {
+func (p *Postgres) GetUserUniqueIPsExt(userid int) (map[string]string, error) {
 	userlogs, err := p.getUniqueUserLogs(userid)
 	if err != nil {
 		return map[string]string{}, err

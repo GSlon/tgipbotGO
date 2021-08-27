@@ -1,7 +1,7 @@
 package models
 
 type Admin struct {
-	ID uint `gorm:"primaryKey"`
-	UserID uint `gorm:"unique"`	
+	ID int `gorm:"primaryKey;autoIncrement"`
+	UserID int `gorm:"unique"`	
 	State string 
 }

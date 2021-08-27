@@ -2,7 +2,7 @@ package bot
 
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/sirupsen/logrus"
+	_ "github.com/sirupsen/logrus"
 
 	s "github.com/GSlon/tgipbotGO/internal/service"
 )
@@ -29,9 +29,6 @@ func (b *Bot) Start() error {
 	}
 
 	for update := range updates {
-		logrus.Info(update.Message)
-		logrus.Info(update.Message.Chat)
-
 		if update.Message == nil { // ignore any non-message 
 			continue
 		}
@@ -52,4 +49,13 @@ func (b *Bot) Start() error {
 	}
 
 	return nil
+}
+
+// обертка над send для логгирования в бд
+func (b *Bot) SendMessage(chatid int64, message string) {
+	msg := tgbotapi.NewMessage(chatid, message)
+	_, err := b.bot.Send(msg)
+	if err != nil {
+		b.service.LogError(err.Error())
+	}
 }

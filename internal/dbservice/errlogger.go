@@ -6,6 +6,6 @@ import (
 
 func (p *Postgres) LogError(info string) error {
 	log := m.ErrorLog{Info: info}
-	result := p.db.Create(log)
+	result := p.db.Create(&log)
 	return result.Error	
 }

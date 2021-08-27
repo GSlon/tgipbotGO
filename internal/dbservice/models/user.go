@@ -5,15 +5,15 @@ import (
 ) 
 
 type User struct {
-	ID uint `gorm:"primaryKey"`
-	UserID uint `gorm:"unique"`
-	ChatID uint `gorm:"unique"`	
+	ID int `gorm:"primaryKey"`
+	UserID int `gorm:"unique"`
+	ChatID int64 `gorm:"unique"`	
 	State string 	// для ответов на запросы бота
 }
 
 type UserLog struct {
 	gorm.Model
-	UserID uint
+	UserID int
 	User User `gorm:"constraint:OnDelete:CASCADE;"`
 	IP string `gorm:"not null"`
 	Info string 
