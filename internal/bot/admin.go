@@ -191,8 +191,8 @@ func (b *Bot) handleUserIdHistoryMessage(message *tgbotapi.Message) error {
 		return err
 	}
 
-	for ip, _ := range info {
-		b.SendMessage(message.Chat.ID, fmt.Sprintf("%s : %s", ip, info[ip]))
+	for ip, log := range info {
+		b.SendMessage(message.Chat.ID, fmt.Sprintf("%s : %s", ip, log))
 	}
 
 	if err := b.changeAdminState(message.From.ID, "default_admin_state"); err != nil {

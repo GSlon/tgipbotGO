@@ -170,7 +170,7 @@ func (p *Postgres) getUniqueUserLogs(userid int) ([]m.UserLog, error) {
 	}
 
 	var userlogs []m.UserLog
-	result := p.db.Distinct("ip").Where("user_id = ?", user.ID).Find(&userlogs)
+	result := p.db.Where("user_id = ?", user.ID).Find(&userlogs)
 	if result.Error != nil {
 		return userlogs, result.Error
 	}
@@ -178,7 +178,7 @@ func (p *Postgres) getUniqueUserLogs(userid int) ([]m.UserLog, error) {
 	if result.RowsAffected == 0 {
 		return userlogs, &LogNotFoundError{}
 	}
-	
+
 	return userlogs, nil
 } 
 
