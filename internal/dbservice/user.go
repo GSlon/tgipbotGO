@@ -204,7 +204,7 @@ func (p *Postgres) GetUserUniqueIPsExt(userid int) (map[string]string, error) {
 		return map[string]string{}, err
 	}
 
-	var res map[string]string 
+	res := make(map[string]string) 
 	for _, log := range userlogs {
 		res[log.IP] = log.Info
 	}

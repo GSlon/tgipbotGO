@@ -12,7 +12,7 @@ import (
 type Info struct {
     City   string `json:"city"`
     Region   string `json:"region"`
-    Country int    `json:"country_name"`
+    Country string    `json:"country_name"`
 }
 
 func ValidateIPv4(ip string) bool {
