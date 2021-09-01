@@ -7,5 +7,5 @@ import (
 // таблица для логгирования ошибок
 type ErrorLog struct {
 	gorm.Model
-	Info string
+	Info string `json:"info"`
 }
