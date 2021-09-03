@@ -1,11 +1,17 @@
 # telegram bot для получения информации об ip
-## запуск
-* make migrate -> миграция;
-* make run -> запукс
 
-## env:
-* DB_PASSWORD -> pass for connect to db
+## запуск (docker)
+docker-compose run
+
+## запуск (без контейнера)
+* make migrate -> отдельно миграция;
+* make run -> запукс (с миграцией)
+
+## docker_env:
+* DB_PASSWORD -> password for connect to db
 * BOT_TOKEN -> telegram bot token
+
+* DB_PASSWORD, POSTGRES_PASSWORD -> same for user and db
 
 Меню юзера
 - Проверить айпи через бота.

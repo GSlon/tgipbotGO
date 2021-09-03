@@ -2,7 +2,6 @@ package main
 
 import (
     "github.com/spf13/viper"
-    "github.com/joho/godotenv"
     "github.com/sirupsen/logrus"
 
 	dbs "github.com/GSlon/tgipbotGO/internal/dbservice"
@@ -20,10 +19,6 @@ func main() {
     if err := initConfig(); err != nil {
         logrus.Fatalf(err.Error())
     }
-
-    if err := godotenv.Load(); err != nil {
-		logrus.Fatalf(err.Error())
-	}
 
     // вызвать Postgres.Migrate
 	config := dbs.PostgresConfig{

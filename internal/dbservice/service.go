@@ -34,6 +34,8 @@ func NewPostgres(cfg PostgresConfig) (*Postgres, error) {
         cfg.Host, cfg.Port, cfg.Username, cfg.DBName, cfg.Password, cfg.SSLMode)
     }
 
+    logrus.Info(config)
+
 	db, err := gorm.Open(postgres.Open(config), &gorm.Config{})
 	if err != nil {
 		return &Postgres{}, err

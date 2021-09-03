@@ -2,7 +2,6 @@ package main
 
 import (
     "github.com/spf13/viper"
-    "github.com/joho/godotenv"
     "github.com/sirupsen/logrus"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 
@@ -25,11 +24,6 @@ func main() {
 		return
     }
 
-    if err := godotenv.Load(); err != nil {
-		logrus.Fatalf(err.Error())
-		return
-	}
-
     config := dbs.PostgresConfig{
 		Host:     viper.GetString("db.host"),
 		Port:     viper.GetString("db.port"),
@@ -44,6 +38,11 @@ func main() {
 		logrus.Fatalf(err.Error())
 		return
 	}
+
+    if err := postgres.Migrate(); err != nil {
+		logrus.Fatalf(err.Error())
+	}
+	logrus.Info("migrate successfully")
 
 	botApi, err := tgbotapi.NewBotAPI(os.Getenv("BOT_TOKEN"))
 	if err != nil {

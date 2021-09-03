@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  db:
+    restart: always
+    hostname: postgres
+    image: postgres:latest
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: ""
+    networks:
+      - botnet
+
+  bot:
+    build: ./
+    command: ./bot
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      DB_PASSWORD: ""
+      BOT_TOKEN: ""
+    networks:
+      - botnet
+
+networks:
+  botnet:
+    name: botnetwork
